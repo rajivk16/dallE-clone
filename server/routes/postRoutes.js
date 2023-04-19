@@ -2,7 +2,7 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
 
-import Post from '../mongodb/models/post.js';
+import PostModel from '../mongodb/models/post.js';
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ cloudinary.config({
 
 router.route('/').get(async (req, res) => {
   try {
-    const posts = await Post.find({});
+    const posts = await PostModel.find({});
     res.status(200).json({ success: true, data: posts });
   } catch (err) {
     res
@@ -33,13 +33,13 @@ router.route('/').post(async (req, res) => {
     const { name, prompt, photo } = req.body;
     const photoUrl = await cloudinary.uploader.upload(photo);
 
-    const newPost = await Post.create({
+    const newPost = await PostModel.create({
       name,
       prompt,
       photo: photoUrl.url,
     });
-
-    res.status(200).json({ success: true, data: newPost });
+    console.log(newPost);
+    res.status(200).json({ success: true, data: newPost, cors: 'https://dall-e-clone-six.vercel.app, http://127.0.0.1:5173/' });
   } catch (err) {
     console.log(err); // Log the error
     res

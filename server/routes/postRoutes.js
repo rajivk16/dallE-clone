@@ -11,7 +11,7 @@ const router = express.Router();
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  api_secret: process.env.CLOUDINARY_SECRET_KEY,
 });
 
 router.route('/').get(async (req, res) => {
@@ -31,7 +31,10 @@ router.route('/').get(async (req, res) => {
 router.route('/').post(async (req, res) => {
   try {
     const { name, prompt, photo } = req.body;
-    const photoUrl = await cloudinary.uploader.upload(photo);
+    const photoUrl = await cloudinary.uploader.upload(photo).catch((err) => {
+      console.error('Error uploading photo to Cloudinary:', err);
+      throw new Error('Failed to upload photo');
+    });
 
     const newPost = await Post.create({
       name,
@@ -41,12 +44,12 @@ router.route('/').post(async (req, res) => {
 
     res.status(200).json({ success: true, data: newPost });
   } catch (err) {
-    console.log(err); // Log the error
+    console.error('Error in POST /api/v1/post:', err); // Log the error
     res
       .status(500)
       .json({
         success: false,
-        message: 'Unable to create a post, please try again',
+        message: err.message || 'Unable to create a post, please try again',
       });
   }
 });

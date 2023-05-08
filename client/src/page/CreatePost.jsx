@@ -26,8 +26,8 @@ const CreatePost = () => {
 
   const generateImage = async () => {
     if (form.prompt) {
+      setGeneratingImg(true);
       try {
-        setGeneratingImg(true);
         const response = await fetch('http://localhost:8080/api/v1/dalle', {
           method: 'POST',
           headers: {
@@ -38,15 +38,20 @@ const CreatePost = () => {
           }),
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
         const data = await response.json();
         setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` });
       } catch (err) {
-        alert(err);
+        console.error('Error generating image:', err);
+        alert('Error generating image. Please try again.');
       } finally {
         setGeneratingImg(false);
       }
     } else {
-      alert('Please provide proper prompt');
+      alert('Please provide a proper prompt');
     }
   };
 
@@ -64,11 +69,16 @@ const CreatePost = () => {
           body: JSON.stringify({ ...form }),
         });
 
-        await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const data = await response.json();
         alert('Success');
         navigate('/');
       } catch (err) {
-        alert(err);
+        console.error('Error sharing with the community:', err);
+        alert('Error sharing with the community. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -76,7 +86,6 @@ const CreatePost = () => {
       alert('Please generate an image with proper details');
     }
   };
-
   return (
     <section className="max-w-7xl mx-auto">
       <div>
